@@ -4,21 +4,21 @@ Structured logging configuration
 
 import logging
 import sys
+import os
 from structlog import get_logger as structlog_get_logger
 import structlog
 from pythonjsonlogger import jsonlogger
-from app.utils.config import get_settings
-
-# Get settings
-settings = get_settings()
 
 # Configure Python logging
 logHandler = logging.StreamHandler(sys.stdout)
 formatter = jsonlogger.JsonFormatter()
 logHandler.setFormatter(formatter)
 
+# Get log level from environment or default to INFO
+log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
+
 logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL.upper()),
+    level=getattr(logging, log_level),
     handlers=[logHandler]
 )
 
