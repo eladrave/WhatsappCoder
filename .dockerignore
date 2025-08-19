@@ -1,0 +1,36 @@
+.env
+.DS_Store
+.pytest_cache
+.mypy_cache
+.venv
+venv
+__pycache__
+dist
+build
+*.egg-info
+*.log
+logs/
+.idea/
+.vscode/
+
+# Docker
+docker-compose.override.yml
+docker/data/
+
+# Coverage reports
+coverage.xml
+htmlcov/
+
+# Local secrets
+secrets/
+*.sqlite3
+.env.local
+.env.*.local
+
+# Python bytecode
+*.pyc
+*.pyo
+
+# Build artifacts
+*.whl
+*.tar.gz

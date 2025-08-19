@@ -1,0 +1,55 @@
+# Core dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+python-multipart==0.0.6
+
+# Twilio integration
+twilio==8.10.0
+
+# LangChain and MCP
+langchain==0.1.0
+langchain-core==0.1.0
+langchain-community==0.0.10
+langchain-openai==0.0.5
+mcp==0.1.0
+
+# Redis for state management
+redis==5.0.1
+hiredis==2.2.3
+
+# HTTP client
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Logging and monitoring
+structlog==23.2.0
+python-json-logger==2.0.7
+
+# Security
+cryptography==41.0.7
+pyjwt==2.8.0
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+tenacity==8.2.3
+
+# Development dependencies
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+coverage==7.3.2
+faker==20.1.0
+factory-boy==3.3.0
+
+# Testing utilities
+respx==0.20.2  # Mock httpx
+fakeredis==2.20.0
+freezegun==1.2.2
