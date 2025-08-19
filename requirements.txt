@@ -25,6 +25,7 @@ hiredis==2.2.3
 # HTTP client
 httpx==0.27.2
 aiohttp==3.9.1
+requests==2.32.3
 
 # Logging and monitoring
 structlog==23.2.0
