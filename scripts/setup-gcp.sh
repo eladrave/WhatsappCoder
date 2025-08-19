@@ -11,17 +11,6 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Configuration
-export GCP_PROJECT_ID="${GCP_PROJECT_ID:-whatsapp-autocoder}"
-export GCP_REGION="${GCP_REGION:-us-central1}"
-export GCP_ARTIFACT_REGISTRY="${GCP_ARTIFACT_REGISTRY:-autocoder}"
-export SA_NAME="github-actions"
-export SA_EMAIL="$SA_NAME@$GCP_PROJECT_ID.iam.gserviceaccount.com"
-
-echo -e "${GREEN}WhatsApp-AutoCoder Google Cloud Setup${NC}"
-echo "======================================"
-echo ""
-
 # Check if gcloud is installed
 if ! command -v gcloud &> /dev/null; then
     echo -e "${RED}Error: gcloud CLI is not installed${NC}"
@@ -29,20 +18,58 @@ if ! command -v gcloud &> /dev/null; then
     exit 1
 fi
 
-echo -e "${YELLOW}Using project: $GCP_PROJECT_ID${NC}"
-echo -e "${YELLOW}Region: $GCP_REGION${NC}"
+echo -e "${GREEN}WhatsApp-AutoCoder Google Cloud Setup${NC}"
+echo "======================================"
 echo ""
 
-# Step 1: Create or select project
-echo -e "${GREEN}Step 1: Setting up Google Cloud Project${NC}"
-if ! gcloud projects describe $GCP_PROJECT_ID &>/dev/null; then
-    echo "Creating new project..."
-    gcloud projects create $GCP_PROJECT_ID --name="WhatsApp AutoCoder"
+# Step 1: Select existing project
+echo -e "${GREEN}Step 1: Select Google Cloud Project${NC}"
+echo ""
+
+# List available projects
+echo -e "${YELLOW}Available Google Cloud Projects:${NC}"
+gcloud projects list --format="table(projectId,name,projectNumber)" 2>/dev/null || {
+    echo -e "${RED}No projects found or not authenticated${NC}"
+    echo "Please run: gcloud auth login"
+    exit 1
+}
+
+echo ""
+read -p "Enter your existing project ID (or press Enter to use current): " USER_PROJECT_ID
+
+# Use current project if none specified
+if [ -z "$USER_PROJECT_ID" ]; then
+    GCP_PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
+    if [ -z "$GCP_PROJECT_ID" ]; then
+        echo -e "${RED}No project set and none provided${NC}"
+        echo "Please specify a project ID"
+        exit 1
+    fi
+    echo -e "${GREEN}Using current project: $GCP_PROJECT_ID${NC}"
 else
-    echo "Project already exists"
+    GCP_PROJECT_ID="$USER_PROJECT_ID"
+    echo -e "${GREEN}Using project: $GCP_PROJECT_ID${NC}"
+fi
+
+# Verify project exists
+if ! gcloud projects describe $GCP_PROJECT_ID &>/dev/null; then
+    echo -e "${RED}Error: Project $GCP_PROJECT_ID not found${NC}"
+    exit 1
 fi
 
 gcloud config set project $GCP_PROJECT_ID
+
+# Configuration
+export GCP_PROJECT_ID
+export GCP_REGION="${GCP_REGION:-us-central1}"
+export GCP_ARTIFACT_REGISTRY="${GCP_ARTIFACT_REGISTRY:-autocoder}"
+export SA_NAME="github-actions-whatsapp"
+export SA_EMAIL="$SA_NAME@$GCP_PROJECT_ID.iam.gserviceaccount.com"
+
+echo ""
+echo -e "${YELLOW}Project: $GCP_PROJECT_ID${NC}"
+echo -e "${YELLOW}Region: $GCP_REGION${NC}"
+echo ""
 
 # Step 2: Enable required APIs
 echo -e "${GREEN}Step 2: Enabling Required APIs${NC}"
@@ -57,17 +84,45 @@ gcloud services enable \
 
 echo "APIs enabled successfully"
 
-# Step 3: Create Artifact Registry repository
-echo -e "${GREEN}Step 3: Creating Artifact Registry${NC}"
-if ! gcloud artifacts repositories describe $GCP_ARTIFACT_REGISTRY --location=$GCP_REGION &>/dev/null; then
+# Step 3: Create or Select Artifact Registry repository
+echo -e "${GREEN}Step 3: Setting up Artifact Registry${NC}"
+echo ""
+
+# List existing repositories
+echo -e "${YELLOW}Existing Artifact Registries in $GCP_REGION:${NC}"
+EXISTING_REPOS=$(gcloud artifacts repositories list --location=$GCP_REGION --format="value(name)" 2>/dev/null)
+
+if [ -n "$EXISTING_REPOS" ]; then
+    echo "$EXISTING_REPOS"
+    echo ""
+    read -p "Enter repository name to use (or press Enter to create new 'autocoder'): " USER_REPO
+    
+    if [ -n "$USER_REPO" ]; then
+        GCP_ARTIFACT_REGISTRY="$USER_REPO"
+        echo -e "${GREEN}Using existing repository: $GCP_ARTIFACT_REGISTRY${NC}"
+    else
+        GCP_ARTIFACT_REGISTRY="autocoder"
+        if ! gcloud artifacts repositories describe $GCP_ARTIFACT_REGISTRY --location=$GCP_REGION &>/dev/null; then
+            gcloud artifacts repositories create $GCP_ARTIFACT_REGISTRY \
+                --repository-format=docker \
+                --location=$GCP_REGION \
+                --description="Docker images for WhatsApp-AutoCoder"
+            echo -e "${GREEN}Created new repository: $GCP_ARTIFACT_REGISTRY${NC}"
+        else
+            echo -e "${GREEN}Using existing repository: $GCP_ARTIFACT_REGISTRY${NC}"
+        fi
+    fi
+else
+    GCP_ARTIFACT_REGISTRY="autocoder"
+    echo "No existing repositories found. Creating new one..."
     gcloud artifacts repositories create $GCP_ARTIFACT_REGISTRY \
         --repository-format=docker \
         --location=$GCP_REGION \
         --description="Docker images for WhatsApp-AutoCoder"
-    echo "Artifact Registry created"
-else
-    echo "Artifact Registry already exists"
+    echo -e "${GREEN}Created new repository: $GCP_ARTIFACT_REGISTRY${NC}"
 fi
+
+export GCP_ARTIFACT_REGISTRY
 
 # Step 4: Create Service Account
 echo -e "${GREEN}Step 4: Creating Service Account${NC}"
