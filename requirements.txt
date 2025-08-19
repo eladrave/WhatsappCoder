@@ -9,12 +9,14 @@ python-multipart==0.0.6
 # Twilio integration
 twilio==8.10.0
 
-# LangChain and MCP
-langchain==0.1.0
-langchain-core==0.1.0
-langchain-community==0.0.10
-langchain-openai==0.0.5
-# mcp package will be added when langchain-mcp-adapters is available
+# LangChain dependencies (using latest stable versions)
+langchain==0.3.12
+langchain-core==0.3.25
+langchain-community==0.3.12
+langchain-openai==0.2.14
+
+# FastMCP 2.0 for MCP client
+fastmcp==2.0.0
 
 # Redis for state management
 redis==5.0.1
