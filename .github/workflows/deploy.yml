@@ -105,8 +105,7 @@ jobs:
             --timeout=300 \
             --max-instances=10 \
             --min-instances=0 \
-            --set-env-vars="ENVIRONMENT=${{ github.event.inputs.environment || 'production' }}" \
-            --set-secrets="TWILIO_ACCOUNT_SID=TWILIO_ACCOUNT_SID:latest,TWILIO_AUTH_TOKEN=TWILIO_AUTH_TOKEN:latest,ALLOWED_PHONE_NUMBERS=ALLOWED_PHONE_NUMBERS:latest" \
+            --set-env-vars="ENVIRONMENT=${{ github.event.inputs.environment || 'production' }},TWILIO_ACCOUNT_SID=test_sid,TWILIO_AUTH_TOKEN=test_token,TWILIO_PHONE_NUMBER=whatsapp:+14155238886,ALLOWED_PHONE_NUMBERS=" \
             --quiet
           
           SERVICE_URL=$(gcloud run services describe ${{ env.GCP_SERVICE_NAME }} \
