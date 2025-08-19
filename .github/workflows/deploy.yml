@@ -95,6 +95,14 @@ jobs:
       - name: Deploy to Cloud Run
         id: deploy
         run: |
+          # First, clear any existing env vars and secrets
+          gcloud run services update ${{ env.GCP_SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --clear-env-vars \
+            --clear-secrets \
+            --quiet || true
+          
+          # Now deploy with new configuration
           gcloud run deploy ${{ env.GCP_SERVICE_NAME }} \
             --image="${{ steps.docker.outputs.image_url }}" \
             --region=${{ env.GCP_REGION }} \
