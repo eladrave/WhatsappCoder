@@ -46,5 +46,22 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8000
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Create startup script for dynamic port binding
+RUN cat > /app/start_server.py << 'EOF'
+import os
+import sys
+import uvicorn
+
+# Get port from Cloud Run
+port = int(os.environ.get("PORT", 8080))
+print(f"Starting server on port {port}", flush=True)
+
+# Import the app
+from app.main import app
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+EOF
+
+# Run the application with dynamic port
+CMD ["python", "/app/start_server.py"]
