@@ -35,19 +35,25 @@ def test_twilio_webhook_structure():
 
 def test_response_formatter():
     """Test response formatter basic functionality"""
-    from app.services.response_formatter import ResponseFormatter
-    
-    formatter = ResponseFormatter()
-    
-    # Test basic formatting
-    text = "Hello World"
-    formatted = formatter.format_for_whatsapp(text)
-    assert formatted == text
-    
-    # Test truncation
-    long_text = "x" * 2000
-    formatted = formatter.format_for_whatsapp(long_text)
-    assert len(formatted) <= 1620  # Max length + truncation message
+    # Mock environment variables before importing
+    with patch.dict(os.environ, {
+        'TWILIO_ACCOUNT_SID': 'test_sid',
+        'TWILIO_AUTH_TOKEN': 'test_token',
+        'TWILIO_PHONE_NUMBER': 'whatsapp:+14155238886'
+    }):
+        from app.services.response_formatter import ResponseFormatter
+        
+        formatter = ResponseFormatter()
+        
+        # Test basic formatting
+        text = "Hello World"
+        formatted = formatter.format_for_whatsapp(text)
+        assert formatted == text
+        
+        # Test truncation
+        long_text = "x" * 2000
+        formatted = formatter.format_for_whatsapp(long_text)
+        assert len(formatted) <= 1620  # Max length + truncation message
 
 def test_conversation_state_model():
     """Test conversation state model"""
