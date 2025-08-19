@@ -39,29 +39,12 @@ USER whatsapp-coder
 # Update PATH
 ENV PATH=/home/whatsapp-coder/.local/bin:$PATH
 
-# Health check
+# Health check (using dynamic port)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+    CMD python -c "import os, requests; port=os.environ.get('PORT', '8080'); requests.get(f'http://localhost:{port}/health')" || exit 1
 
-# Expose port
-EXPOSE 8000
-
-# Create startup script for dynamic port binding
-RUN cat > /app/start_server.py << 'EOF'
-import os
-import sys
-import uvicorn
-
-# Get port from Cloud Run
-port = int(os.environ.get("PORT", 8080))
-print(f"Starting server on port {port}", flush=True)
-
-# Import the app
-from app.main import app
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
-EOF
+# Expose port (Cloud Run will use PORT env var)
+EXPOSE 8080
 
 # Run the application with dynamic port
-CMD ["python", "/app/start_server.py"]
+CMD ["python", "start_server.py"]
